@@ -1,0 +1,136 @@
+# ##############################################################################
+
+# iCEcube PCF
+
+# Version:            2017.08.27940
+
+# File Generated:     Dec 29 2020 13:59:43
+
+# Family & Device:    iCE40HX8K
+
+# Package:            CB132
+
+# ##############################################################################
+
+###MergeFF List 32
+set_io_ff C6_brd -in ON
+set_io_ff C8_brd -in ON
+set_io_ff C9_brd -in ON
+set_io_ff DIP_io[1] -in ON
+set_io_ff DIP_io[2] -in ON
+set_io_ff DIP_io[3] -in ON
+set_io_ff DIP_io[4] -in ON
+set_io_ff DIP_io[5] -in ON
+set_io_ff DIP_io[6] -in ON
+set_io_ff DIP_io[7] -in ON
+set_io_ff DIP_io[8] -in ON
+set_io_ff DIP_io[9] -in ON
+set_io_ff DIP_io[10] -in ON
+set_io_ff DIP_io[11] -in ON
+set_io_ff DIP_io[12] -in ON
+set_io_ff DIP_io[13] -in ON
+set_io_ff DIP_io[14] -in ON
+set_io_ff DIP_io[15] -in ON
+set_io_ff DIP_io[16] -in ON
+set_io_ff DIP_io[17] -in ON
+set_io_ff DIP_io[18] -in ON
+set_io_ff DIP_io[19] -in ON
+set_io_ff DIP_io[20] -in ON
+set_io_ff DIP_io[21] -in ON
+set_io_ff DIP_io[22] -in ON
+set_io_ff DIP_io[23] -in ON
+set_io_ff DIP_io[24] -in ON
+set_io_ff S_io[1] -in ON
+set_io_ff S_io[2] -in ON
+set_io_ff S_io[3] -in ON
+set_io_ff S_io[4] -in ON
+set_io_ff S_io[5] -in ON
+
+###IOSet List 86
+set_io AN_io[1] H3 -io_std SB_LVCMOS -pullup no
+set_io AN_io[2] H1 -io_std SB_LVCMOS -pullup no
+set_io AN_io[3] G1 -io_std SB_LVCMOS -pullup no
+set_io AN_io[4] G3 -io_std SB_LVCMOS -pullup no
+set_io C6_brd L5 -io_std SB_LVCMOS -pullup no
+set_io C8_brd M6 -io_std SB_LVCMOS -pullup no
+set_io C9_brd M7 -io_std SB_LVCMOS -pullup no
+set_io C42_brd L8 -io_std SB_LVCMOS -pullup no
+set_io C43_brd L6 -io_std SB_LVCMOS -pullup no
+set_io C45_brd P5 -io_std SB_LVCMOS -pullup no
+set_io C46_brd P4 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[1] C11 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[2] C12 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[3] D11 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[4] D12 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[5] E11 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[6] F11 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[7] F12 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[8] G12 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[9] C5 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[10] A5 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[11] C6 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[12] C7 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[13] D6 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[14] D7 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[15] D9 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[16] D10 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[17] G4 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[18] H4 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[19] F3 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[20] F4 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[21] E4 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[22] D4 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[23] C4 -io_std SB_LVCMOS -pullup no
+set_io DIP_io[24] D5 -io_std SB_LVCMOS -pullup no
+set_io L_io[1] G14 -io_std SB_LVCMOS -pullup no
+set_io L_io[2] F14 -io_std SB_LVCMOS -pullup no
+set_io L_io[3] E12 -io_std SB_LVCMOS -pullup no
+set_io L_io[4] E14 -io_std SB_LVCMOS -pullup no
+set_io L_io[5] D14 -io_std SB_LVCMOS -pullup no
+set_io L_io[6] C14 -io_std SB_LVCMOS -pullup no
+set_io L_io[7] B14 -io_std SB_LVCMOS -pullup no
+set_io L_io[8] A12 -io_std SB_LVCMOS -pullup no
+set_io L_io[9] C10 -io_std SB_LVCMOS -pullup no
+set_io L_io[10] C9 -io_std SB_LVCMOS -pullup no
+set_io L_io[11] A11 -io_std SB_LVCMOS -pullup no
+set_io L_io[12] A10 -io_std SB_LVCMOS -pullup no
+set_io L_io[13] A7 -io_std SB_LVCMOS -pullup no
+set_io L_io[14] A6 -io_std SB_LVCMOS -pullup no
+set_io L_io[15] A4 -io_std SB_LVCMOS -pullup no
+set_io L_io[16] A3 -io_std SB_LVCMOS -pullup no
+set_io L_io[17] A2 -io_std SB_LVCMOS -pullup no
+set_io L_io[18] A1 -io_std SB_LVCMOS -pullup no
+set_io L_io[19] C3 -io_std SB_LVCMOS -pullup no
+set_io L_io[20] D3 -io_std SB_LVCMOS -pullup no
+set_io L_io[21] B1 -io_std SB_LVCMOS -pullup no
+set_io L_io[22] C1 -io_std SB_LVCMOS -pullup no
+set_io L_io[23] D1 -io_std SB_LVCMOS -pullup no
+set_io L_io[24] E1 -io_std SB_LVCMOS -pullup no
+set_io LED_brd[0] J11 -io_std SB_LVCMOS -pullup no
+set_io LED_brd[1] K11 -io_std SB_LVCMOS -pullup no
+set_io LED_brd[2] K12 -io_std SB_LVCMOS -pullup no
+set_io LED_brd[3] K14 -io_std SB_LVCMOS -pullup no
+set_io LED_brd[4] L12 -io_std SB_LVCMOS -pullup no
+set_io LED_brd[5] L14 -io_std SB_LVCMOS -pullup no
+set_io LED_brd[6] M12 -io_std SB_LVCMOS -pullup no
+set_io LED_brd[7] N14 -io_std SB_LVCMOS -pullup no
+set_io RA_io J1 -io_std SB_LVCMOS -pullup no
+set_io RB_io J3 -io_std SB_LVCMOS -pullup no
+set_io RC_io N1 -io_std SB_LVCMOS -pullup no
+set_io RD_io K4 -io_std SB_LVCMOS -pullup no
+set_io RE_io K3 -io_std SB_LVCMOS -pullup no
+set_io RF_io L1 -io_std SB_LVCMOS -pullup no
+set_io RG_io M1 -io_std SB_LVCMOS -pullup no
+set_io RDP_io P1 -io_std SB_LVCMOS -pullup no
+set_io S_io[1] G11 -io_std SB_LVCMOS -pullup no
+set_io S_io[2] H11 -io_std SB_LVCMOS -pullup no
+set_io S_io[3] H12 -io_std SB_LVCMOS -pullup no
+set_io S_io[4] J12 -io_std SB_LVCMOS -pullup no
+set_io S_io[5] P2 -io_std SB_LVCMOS -pullup no
+set_io DI_brd M3 -io_std SB_LVCMOS -pullup yes
+set_io DO_brd M4 -io_std SB_LVCMOS -pullup no
+set_io SCK_brd P3 -io_std SB_LVCMOS -pullup no
+set_io NMI_brd L4 -io_std SB_LVCMOS -pullup yes
+set_io MHZ_100 P7 -io_std SB_LVCMOS -pullup no
+set_io RESET_brd P8 -io_std SB_LVCMOS -pullup no
+
