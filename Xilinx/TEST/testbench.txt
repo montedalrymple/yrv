@@ -1,0 +1,312 @@
+/*******************************************************************************************/
+/**                                                                                       **/
+/** Copyright 2020 Systemyde International Corporation                                    **/
+/**                                                                                       **/
+/** SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1                                      **/
+/**                                                                                       **/
+/** Licensed under the Solderpad Hardware License v 2.1 (the “License”); you may not use  **/
+/** this file except in compliance with the License, or, at your option, the Apache       **/
+/** License version 2.0. You may obtain a copy of the License at                          **/
+/**                                                                                       **/
+/** https://solderpad.org/licenses/SHL-2.1/                                               **/
+/**                                                                                       **/
+/** Unless required by applicable law or agreed to in writing, any work distributed under **/
+/** the License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF   **/
+/** ANY KIND, either express or implied. See the License for the specific language        **/
+/** governing permissions and limitations under the License.                              **/
+/**                                                                                       **/
+/** YRV processor test bench                                          Rev 0.0  12/24/2020 **/
+/**                                                                                       **/
+/*******************************************************************************************/
+`timescale 1ns / 10ps                                      /* set time scale               */
+
+`define SIM_VERSION
+
+`include "yrv_top.v"                                       /* top level                    */
+
+`define MEM_WAITS 10'h3ff
+
+module testbench;
+
+  wire          CSR_READ;                                  /* csr read enable              */
+  wire          CSR_WRITE;                                 /* csr write enable             */
+  wire          DEBUG_MODE;                                /* debug mode                   */
+  wire          MEM_LOCK;                                  /* memory lock (rmw)            */
+  wire          MEM_WRITE;                                 /* memory write enable          */
+  wire          TIMER_EN;                                  /* timer enable                 */
+  wire          WFI_STATE;                                 /* waiting for interrupt        */
+  wire    [1:0] MEM_TRANS;                                 /* memory transfer type         */
+  wire    [3:0] MEM_BLE;                                   /* memory byte ;ane enables     */
+  wire   [11:0] CSR_ACHK;                                  /* csr address to check         */
+  wire   [11:0] CSR_ADDR;                                  /* csr address                  */
+  wire   [31:0] CSR_WDATA;                                 /* csr write data               */
+  wire   [31:0] MEM_ADDR;                                  /* memory address               */
+  wire   [31:0] MEM_RDATA;                                 /* memory read data             */
+  wire   [31:0] MEM_WDATA;                                 /* memory write data            */
+
+  reg           BRK_REQ;                                   /* breakpoint request           */
+  reg           BUS_32;                                    /* 32-bit bus select            */
+  reg           CLK_CPU;                                   /* cpu clock                    */
+  reg           CSR_OK_EXT;                                /* valid external csr addr      */
+  reg           DBG_REQ;                                   /* debug request                */
+  reg           DRESETB;                                   /* debug reset                  */
+  reg           EI_REQ;                                    /* external int request         */
+  reg           HALT_REG;                                  /* halt request                 */
+  reg           MEM_READY;                                 /* memory ready                 */
+  reg           NMI_REQ;                                   /* non-maskable interrupt       */
+  reg           RESETB;                                    /* master reset                 */
+  reg           SW_REQ;                                    /* sw int request               */
+  reg           TIMER_MATCH;                               /* timer/cmp match              */
+  reg     [9:0] HW_ID;                                     /* hardware id                  */
+  reg    [15:0] LI_REQ;                                    /* local int requests           */
+  reg    [31:0] CSR_RDATA;                                 /* csr external read data       */
+  reg    [63:0] TIMER_REG;                                 /* timer counter                */
+
+  /*****************************************************************************************/
+  /* testbench housekeeping                                                                */
+  /*****************************************************************************************/
+  wire          CMP_ERR;                                   /* error detect                 */
+  wire          OK_TO_WR;                                  /* okay to write                */
+  wire   [31:0] CMP_DATA;                                  /* write compare data           */
+
+  reg           CMP_EN;                                    /* write compare enable         */
+  reg           PAT_DONE;                                  /* pattern done flag            */
+  reg           TREF0, TREF1, TREF2, TREF3, TREF4;         /* timing generator             */ 
+  reg           TREF5, TREF6, TREF7, TREF8, TREF9;
+  reg     [3:0] PAT_CNT;                                   /* counter to track patterns    */
+  reg    [15:0] CMP_ERR_L;                                 /* error counter                */
+
+  /*****************************************************************************************/
+  /* testbench registers                                                                   */
+  /*****************************************************************************************/
+  reg           MEM_WRITE_reg;                             /* memory write enable          */
+  reg     [1:0] MEM_TRANS_reg;                             /* memory transfer type         */
+  reg     [3:0] MEM_BLE_reg;                               /* memory byte lane enables     */
+  reg     [9:0] MEM_READY_reg;                             /* memory ready generator       */
+  reg    [31:0] MEM_ADDR_reg;                              /* memory address               */
+
+  /*****************************************************************************************/
+  /* testbench memory                                                                      */
+  /*****************************************************************************************/
+  reg     [7:0] cpu_mem [0:65535];                         /* r/w memory                   */
+  reg     [7:0] cmp_mem [0:65535];                         /* compare memory               */
+
+  /*****************************************************************************************/
+  /* initialize testbench                                                                  */
+  /*****************************************************************************************/
+  initial begin
+    CMP_EN      <=  1'b0;
+    CMP_ERR_L   <= 16'h0;
+    PAT_DONE    <=  1'b0;
+    BRK_REQ     <=  1'b0;
+    BUS_32      <=  1'b1;
+    CLK_CPU     <=  1'b0;
+    CSR_OK_EXT  <=  1'b0;
+    CSR_RDATA   <= 32'h0;
+    DBG_REQ     <=  1'b0;
+    DRESETB     <=  1'b1;
+    EI_REQ      <=  1'b0;
+    HALT_REG    <=  1'b0;
+    HW_ID       <= 10'h0;
+    LI_REQ      <= 16'h0;
+    MEM_READY   <=  1'b1;
+    NMI_REQ     <=  1'b0;
+    RESETB      <=  1'b1;
+    SW_REQ      <=  1'b0;
+    TIMER_MATCH <=  1'b0;
+    TIMER_REG   <= 64'h0;
+    end
+
+  /*****************************************************************************************/
+  /* timing generator                                                                      */
+  /*****************************************************************************************/
+  initial begin
+    TREF0 <= 1'b1;
+    TREF1 <= 1'b0;
+    TREF2 <= 1'b0;
+    TREF3 <= 1'b0;
+    TREF4 <= 1'b0;
+    TREF5 <= 1'b0;
+    TREF6 <= 1'b0;
+    TREF7 <= 1'b0;
+    TREF8 <= 1'b0;
+    TREF9 <= 1'b0;
+    end
+
+  always begin
+    #10 TREF0 <= 1'b0;
+        TREF1 <= 1'b1;
+    #10 TREF1 <= 1'b0;
+        TREF2 <= 1'b1;
+    #10 TREF2 <= 1'b0;
+        TREF3 <= 1'b1;
+    #10 TREF3 <= 1'b0;
+        TREF4 <= 1'b1;
+    #10 TREF4 <= 1'b0;
+        TREF5 <= 1'b1;
+    #10 TREF5 <= 1'b0;
+        TREF6 <= 1'b1;
+    #10 TREF6 <= 1'b0;
+        TREF7 <= 1'b1;
+    #10 TREF7 <= 1'b0;
+        TREF8 <= 1'b1;
+    #10 TREF8 <= 1'b0;
+        TREF9 <= 1'b1;
+    #10 TREF9 <= 1'b0;
+        TREF0 <= 1'b1;
+    end
+
+  always @ (posedge TREF3) CLK_CPU = 0;
+  always @ (posedge TREF8) CLK_CPU = 1;
+
+  /*****************************************************************************************/
+  /* processor memory                                                                      */
+  /*****************************************************************************************/
+  always @ (posedge CLK_CPU) begin
+    if (MEM_READY) begin
+      MEM_ADDR_reg  <= MEM_ADDR;
+      MEM_BLE_reg   <= MEM_BLE;
+      MEM_TRANS_reg <= MEM_TRANS;
+      MEM_WRITE_reg <= MEM_WRITE;
+      end
+    end
+
+  assign OK_TO_WR = MEM_WRITE_reg && &MEM_TRANS_reg && MEM_READY;
+
+  always @ (posedge CLK_CPU) begin
+    if (OK_TO_WR) begin
+      if (BUS_32) begin
+        if (MEM_BLE_reg[0]) cpu_mem[{MEM_ADDR_reg[15:2], 2'b00}] <= MEM_WDATA[7:0];
+        if (MEM_BLE_reg[1]) cpu_mem[{MEM_ADDR_reg[15:2], 2'b01}] <= MEM_WDATA[15:8];
+        if (MEM_BLE_reg[2]) cpu_mem[{MEM_ADDR_reg[15:2], 2'b10}] <= MEM_WDATA[23:16];
+        if (MEM_BLE_reg[3]) cpu_mem[{MEM_ADDR_reg[15:2], 2'b11}] <= MEM_WDATA[31:24];
+        end
+      else begin
+        if (MEM_BLE_reg[0]) cpu_mem[{MEM_ADDR_reg[15:1], 1'b0}]  <= MEM_WDATA[7:0];
+        if (MEM_BLE_reg[1]) cpu_mem[{MEM_ADDR_reg[15:1], 1'b1}]  <= MEM_WDATA[15:8];
+        end
+      end
+    end
+
+  assign MEM_RDATA = (MEM_WRITE_reg)   ? 32'h0 :
+                     (!MEM_READY)      ? 32'h0 :
+                     (~|MEM_TRANS_reg) ? 32'h0 :
+                     (BUS_32)          ? {cpu_mem[{MEM_ADDR_reg[15:2], 2'b11}],
+                                          cpu_mem[{MEM_ADDR_reg[15:2], 2'b10}],
+                                          cpu_mem[{MEM_ADDR_reg[15:2], 2'b01}],
+                                          cpu_mem[{MEM_ADDR_reg[15:2], 2'b00}]} :
+                                         {16'h0000,
+                                          cpu_mem[{MEM_ADDR_reg[15:1], 1'b1}],
+                                          cpu_mem[{MEM_ADDR_reg[15:1], 1'b0}]};
+
+  /*****************************************************************************************/
+  /* Wait State generation                                                                 */
+  /*****************************************************************************************/
+  always @ (posedge CLK_CPU) begin
+    MEM_READY_reg <= ( |MEM_TRANS && MEM_READY) ? `MEM_WAITS :
+                     (~|MEM_TRANS && MEM_READY) ? 10'h3ff    : {1'b1, MEM_READY_reg[9:1]};
+    end
+
+  always @ (posedge TREF4) begin
+    MEM_READY <= MEM_READY_reg[0];
+    end
+
+  /*****************************************************************************************/
+  /* MI_REQ generation                                                                     */
+  /*****************************************************************************************/
+
+  /*****************************************************************************************/
+  /* NMI_REQ generation                                                                    */
+  /*****************************************************************************************/
+
+  /*****************************************************************************************/
+  /* instantiate the design                                                                */
+  /*****************************************************************************************/
+  yrv_top YRV  ( .csr_achk(CSR_ACHK), .csr_addr(CSR_ADDR), .csr_read(CSR_READ),
+                 .csr_wdata(CSR_WDATA), .csr_write(CSR_WRITE), .debug_mode(DEBUG_MODE),
+                 .ebrk_inst(), .mem_addr(MEM_ADDR), .mem_ble(MEM_BLE),
+                 .mem_lock(MEM_LOCK), .mem_trans(MEM_TRANS), .mem_wdata(MEM_WDATA),
+                 .mem_write(MEM_WRITE), .timer_en(TIMER_EN),
+                 .wfi_state(WFI_STATE), .brk_req(BRK_REQ), .bus_32(BUS_32), .clk(CLK_CPU),
+                 .csr_ok_ext(CSR_OK_EXT), .csr_rdata(CSR_RDATA), .dbg_req(DBG_REQ),
+                 .dresetb(DRESETB), .ei_req(EI_REQ), .halt_reg(HALT_REG), .hw_id(HW_ID),
+                 .li_req(LI_REQ), .mem_rdata(MEM_RDATA), .mem_ready(MEM_READY),
+                 .nmi_req(NMI_REQ), .resetb(RESETB), .sw_req(SW_REQ),
+                 .timer_match(TIMER_MATCH), .timer_rdata(TIMER_REG) );
+
+  /*****************************************************************************************/
+  /* error log                                                                             */
+  /*****************************************************************************************/
+  assign CMP_DATA = (BUS_32) ? {cmp_mem[{MEM_ADDR_reg[15:2], 2'b11}],
+                                cmp_mem[{MEM_ADDR_reg[15:2], 2'b10}],
+                                cmp_mem[{MEM_ADDR_reg[15:2], 2'b01}],
+                                cmp_mem[{MEM_ADDR_reg[15:2], 2'b00}]} :
+                               {16'h0,
+                                cmp_mem[{MEM_ADDR_reg[15:1], 1'b1}],
+                                cmp_mem[{MEM_ADDR_reg[15:1], 1'b0}]};
+
+
+  assign CMP_ERR  = (MEM_BLE_reg[3] && (MEM_WDATA[31:24] != CMP_DATA[31:24])) ||
+                    (MEM_BLE_reg[2] && (MEM_WDATA[23:16] != CMP_DATA[23:16])) ||
+                    (MEM_BLE_reg[1] && (MEM_WDATA[15:8]  != CMP_DATA[15:8] )) ||
+                    (MEM_BLE_reg[0] && (MEM_WDATA[7:0]   != CMP_DATA[7:0]  ));
+
+  always @ (posedge TREF4) begin
+    if (OK_TO_WR && CMP_EN) CMP_ERR_L = CMP_ERR_L + CMP_ERR;
+    end
+
+  /*****************************************************************************************/
+  /* end-of-pattern detect                                                                 */
+  /*****************************************************************************************/
+  always @ (posedge TREF4) begin
+    PAT_DONE  = !MEM_WRITE_reg && (MEM_ADDR_reg[15:0] == 16'hfffe);
+    end
+
+  /*****************************************************************************************/
+  /* test tasks                                                                            */
+  /*****************************************************************************************/
+  task setuptask;
+    begin
+      CMP_ERR_L = 16'h0000;
+      $readmemh("blank_xx.vm", cpu_mem);
+      $readmemh("blank_xx.vm", cmp_mem);
+      end
+    endtask    
+
+  task resettask;
+    begin
+      wait(TREF6);
+      DRESETB = 0;
+      RESETB  = 0;
+      wait(TREF0);
+      wait(TREF6);
+      wait(TREF0);
+      wait(TREF6);
+      DRESETB = 1;
+      RESETB  = 1;
+      wait(TREF0);
+      PAT_DONE = 0;
+      end
+    endtask    
+
+  /*****************************************************************************************/
+  /* run the test patterns                                                                 */
+  /*****************************************************************************************/
+  initial begin
+    resettask;
+    setuptask;
+    PAT_CNT = 4'h1;
+    $readmemh("dbg_rom.vm", cpu_mem);
+    $readmemh("dbg_chk.vm", cmp_mem);
+    wait (PAT_DONE);
+
+    $stop;
+    end
+
+  endmodule
+
+
+
+
+
+
